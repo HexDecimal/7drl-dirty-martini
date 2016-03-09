@@ -3,6 +3,8 @@
 from __future__ import absolute_import, division, print_function
 from builtins import *
 
+import tdl
+
 import tiles
 import sched
 
@@ -12,6 +14,7 @@ class Map(object):
         self.width = width
         self.height = height
         self.depth = depth
+        self.tdl_data = [tdl.map.Map(width, height) for _ in range(depth)]
         self.tiles = [None] * (width * height * depth)#[tiles.Tile(self) for _ in range(width * height * depth)]
         self.actors = []
         self.scheduler = sched.TickScheduler()
@@ -19,18 +22,35 @@ class Map(object):
         self.camera_y = 0
         self.camera_z = 0
         self.player = None
-        for x in range(self.width):
-            for y in range(self.height):
-                for z in range(self.depth):
-                    self[x,y,z] = tiles.Tile()
+        for z in range(self.depth):
+            tile = tiles.Tile if z == 0 else tiles.OpenSpace
+            for x in range(self.width):
+                for y in range(self.height):
+                    wall = False#(x % 8 == 0 and y % 8 == 0)
+                    self[x,y,z] = tiles.WoodenWall() if wall else tile()
+
+    def camera_center_at(self, x, y, z, view_width, view_height):
+        self.camera_z = z
+        self.camera_x = max(0, min(x - view_width // 2, self.width - view_width))
+        self.camera_y = max(0, min(y - view_height // 2, self.height - view_height))
+
+    def camera_center_on_player(self, view_width, view_height):
+        self.camera_center_at(self.player.x, self.player.y, self.player.z,
+                              view_width, view_height)
 
     def index(self, x, y, z):
         return x + y * self.width + z * self.width * self.height
 
     def __getitem__(self, xyz):
-        return self.tiles[self.index(*xyz)]
+        if(0 <= xyz[0] < self.width and 0 <= xyz[1] < self.height and
+           0 <= xyz[2] < self.depth):
+            return self.tiles[self.index(*xyz)]
+        return tiles.Border()
 
     def __setitem__(self, xyz, tile):
         tile.x, tile.y, tile.z = xyz
         tile.map = self
         self.tiles[self.index(*xyz)] = tile
+        self.tdl_data[xyz[2]].walkable[xyz[:2]] = tile.walkable
+        self.tdl_data[xyz[2]].transparent[xyz[:2]] = tile.transparent
+

@@ -8,6 +8,7 @@ import tdl
 import display
 import tiles
 import map
+import mapgen
 import things
 import actors
 
@@ -43,19 +44,22 @@ class MapState(State):
         self.map = map
         super().__init__(map=map, **kargs)
         self.simulate_until_player_is_ready()
-        
+
     def simulate_until_player_is_ready(self):
         while self.map.player.ticket is not None:
             self.map.scheduler.next()
         print(self.map.scheduler)
 
     def draw(self, console):
+        console.clear()
+        self.map.camera_center_on_player(*console.get_size())
         cam_x = self.map.camera_x
         cam_y = self.map.camera_y
         cam_z = self.map.camera_z
         for x,y in console:
-            console.draw_char(x + cam_x, y + cam_y,
-                              *self.map[x,y,cam_z].get_graphic())
+            console.draw_char(x, y,
+                              *self.map[x + cam_x, y + cam_y, cam_z]
+                                                            .get_graphic())
 
 class MapEditor(MapState):
     pass
@@ -79,13 +83,16 @@ class MainGameState(MapState):
     def key_down(self, event):
         if event.keychar in self.MOVE_DIRS:
             self.map.player.act_move(*self.MOVE_DIRS[event.keychar])
+        if event.keychar in '<>':
+            self.map.player.act_move(0, 0, {'<': 1, '>': -1}[event.keychar])
         self.simulate_until_player_is_ready()
 
 class MainMenu(State):
 
     def key_down(self, event):
         if event.char.upper() == 'S':
-            new_map = map.Map(128,128,1)
+            #new_map = map.Map(128,128,3)
+            new_map = mapgen.MapGen().map
             actors.Actor(map=new_map, x=4, y=4, z=0, player=True)
             MainGameState(new_map).push()
         super().key_down(event)
