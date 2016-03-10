@@ -21,13 +21,15 @@ class Map(object):
         self.camera_x = 0
         self.camera_y = 0
         self.camera_z = 0
+        self.cursor_x = 0
+        self.cursor_y = 0
+        self.cursor_z = 0
         self.player = None
         for z in range(self.depth):
             tile = tiles.Tile if z == 0 else tiles.OpenSpace
             for x in range(self.width):
                 for y in range(self.height):
-                    wall = False#(x % 8 == 0 and y % 8 == 0)
-                    self[x,y,z] = tiles.WoodenWall() if wall else tile()
+                    self[x,y,z] = tile()
 
     def camera_center_at(self, x, y, z, view_width, view_height):
         self.camera_z = z
