@@ -38,6 +38,8 @@ class TestGen(mapgen.MapGen):
         for gateway in self.gateways:
             gateway.generate()
         #for room in self.rooms:
+        #    if not isinstance(room, rooms.Outdoors):
+        #        continue
         #    print(room)
         #    for gateway in room.gateways:
         #        print(gateway)

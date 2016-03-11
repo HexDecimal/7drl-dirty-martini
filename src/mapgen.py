@@ -16,7 +16,8 @@ class RoomSplitException(RoomGenerationException):
     pass
 
 def range_intersection(x1, width1, x2, width2):
-    return max(x1, x2), min(x1 + width1 - x2, x2 + width2 - x1)
+    return max(x1, x2), min(x1 + width1 - x2, x2 + width2 - x1,
+                            width1, width2)
 
 class Gateway(object):
     def __init__(self, mapgen, room1, room2):
@@ -40,7 +41,12 @@ class Gateway(object):
         self.rooms = (room1, room2)
         self.mapgen.gateways.append(self)
 
+        self.post_adjustment()
+
         logging.debug('new %s', self)
+
+    def post_adjustment(self):
+        pass
 
     def in_bounds(self, x, y, z=None):
         return (self.x <= x < self.x + self.width and
@@ -318,8 +324,8 @@ class Room(object):
     def generate(self):
         for pos in self.get_floors():
             self.mapgen.map[pos] = tiles.Floor()
-        #for pos in self.get_walls():
-        #    self.mapgen.map[pos] = tiles.Wall()
+        for pos in self.get_walls():
+            self.mapgen.map[pos] = tiles.Wall()
 
     def __repr__(self):
         return ('<%s(X:%i, Y:%i, Width:%i, Height:%i)>' %
