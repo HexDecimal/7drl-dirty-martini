@@ -26,7 +26,7 @@ class Map(object):
         self.cursor_z = 0
         self.player = None
         for z in range(self.depth):
-            tile = tiles.Tile if z == 0 else tiles.OpenSpace
+            tile = tiles.DefaultFloor if z == 0 else tiles.DefaultOpenSpace
             for x in range(self.width):
                 for y in range(self.height):
                     self[x,y,z] = tile()

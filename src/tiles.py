@@ -9,6 +9,7 @@ class Tile(object):
     bg = 0x000000
     walkable = True
     transparent = True
+    is_default = False
 
     def __init__(self):
         self.map = None
@@ -24,10 +25,20 @@ class Tile(object):
 class Floor(Tile):
     'default floor'
 
+class DefaultFloor(Floor):
+    is_default = True
+
+class Grass(Floor):
+    ch = ','
+    fg = 0x00cc22
+
 class OpenSpace(Tile):
     'A apace with no wall or floor'
     ch = ' '
     bg = 0x00cccc
+
+class DefaultOpenSpace(Floor):
+    is_default = True
 
 class Border(Tile):
     ch = '!'

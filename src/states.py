@@ -9,6 +9,7 @@ import display
 import tiles
 import map
 import mapgen
+import mapgen_generators
 import things
 import actors
 
@@ -48,7 +49,7 @@ class MapState(State):
     def simulate_until_player_is_ready(self):
         while self.map.player.ticket is not None:
             self.map.scheduler.next()
-        print(self.map.scheduler)
+        #print(self.map.scheduler)
 
     def draw(self, console):
         console.clear()
@@ -92,7 +93,7 @@ class MainMenu(State):
     def key_down(self, event):
         if event.char.upper() == 'S':
             #new_map = map.Map(128,128,3)
-            new_map = mapgen.MapGen().map
+            new_map = mapgen_generators.TestGen().map
             actors.Actor(map=new_map, x=4, y=4, z=0, player=True)
             MainGameState(new_map).push()
         super().key_down(event)
