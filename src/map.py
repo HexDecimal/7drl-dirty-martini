@@ -52,7 +52,10 @@ class Map(object):
     def __setitem__(self, xyz, tile):
         tile.x, tile.y, tile.z = xyz
         tile.map = self
-        self.tiles[self.index(*xyz)] = tile
+        index = self.index(*xyz)
+        old_tile = self.tiles[index]
+        self.tiles[index] = tile
         self.tdl_data[xyz[2]].walkable[xyz[:2]] = tile.walkable
         self.tdl_data[xyz[2]].transparent[xyz[:2]] = tile.transparent
-
+        if old_tile is not None:
+            tile.ev_replacing(old_tile)

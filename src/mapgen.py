@@ -16,9 +16,7 @@ class RoomSplitException(RoomGenerationException):
     pass
 
 def range_intersection(x1, width1, x2, width2):
-    if x2 < x1:
-        x1, x2, width1, width2 = x2, x1, width2, width1
-    return x1, x1 + width1 - x2
+    return max(x1, x2), min(x1 + width1 - x2, x2 + width2 - x1)
 
 class Gateway(object):
     def __init__(self, mapgen, room1, room2):
@@ -48,6 +46,15 @@ class Gateway(object):
         return (self.x <= x < self.x + self.width and
                 self.y <= y < self.y + self.height and
                 (z is None or z == self.z))
+
+    def get_inner(self):
+        for x in range(self.x, self.x + self.width):
+            for y in range(self.y, self.y + self.height):
+                yield x, y, self.z
+
+    def generate(self):
+        for pos in self.get_inner():
+            self.mapgen.map[pos] = tiles.GatewayDebugFloor()
 
     def __repr__(self):
         return ('<%s(X:%i, Y:%i, Z:%i, Width:%i, Height:%i)>' %
@@ -120,14 +127,14 @@ class Room(object):
         if intersect_x is not None:
             y, height = range_intersection(self.y, self.height,
                                            other.y, other.height)
-            if height > 2:
+            if height >= 2:
                 y += 1
                 height -= 1
                 intersection = (intersect_x, y, self.z, 1, height)
         if intersect_y is not None:
             x, width = range_intersection(self.x, self.width,
                                           other.x, other.width)
-            if width > 2:
+            if width >= 2:
                 x += 1
                 width -= 1
                 intersection = (x, intersect_y, self.z, width, 1)
@@ -249,23 +256,27 @@ class Room(object):
                           if self.get_intersection(room)]
 
     def get_inner(self):
+        for x in range(self.x, self.x + self.width):
+            for y in range(self.y, self.y + self.height):
+                yield x, y, self.z
+
+    def get_floors(self):
         for x in range(self.x + 1, self.x + self.width):
             for y in range(self.y + 1, self.y + self.height):
-                yield x,y,self.z
+                yield x, y, self.z
 
     def get_outer(self):
-        def iter_outer_frame():
-            for x in range(self.x, self.x + self.width + 1):
-                yield x, self.y, self.z
-                yield x, self.y + self.height, self.z
-            for y in range(self.y + 1, self.y + self.height):
-                yield self.x, y, self.z
-                yield self.x + self.width, y, self.z
+        for x in range(self.x, self.x + self.width + 1):
+            yield x, self.y, self.z
+            yield x, self.y + self.height, self.z
+        for y in range(self.y + 1, self.y + self.height):
+            yield self.x, y, self.z
+            yield self.x + self.width, y, self.z
 
-        for x, y, z in iter_outer_frame():
+    def get_walls(self):
+        for x, y, z in self.get_outer():
             for gateway in self.gateways:
                 if gateway.in_bounds(x, y):
-                    #print('HIT')
                     break
             else:
                 yield x, y, z
@@ -305,9 +316,9 @@ class Room(object):
         return rooms
 
     def generate(self):
-        for pos in self.get_inner():
+        for pos in self.get_floors():
             self.mapgen.map[pos] = tiles.Floor()
-        for pos in self.get_outer():
+        for pos in self.get_walls():
             self.mapgen.map[pos] = tiles.Wall()
 
     def __repr__(self):

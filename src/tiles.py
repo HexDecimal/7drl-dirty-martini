@@ -22,11 +22,24 @@ class Tile(object):
             ch, fg = self.objs[-1].get_graphic()
         return ch, fg, bg
 
+    def ev_replacing(self, old_tile):
+        self.objs.extend(old_tile.objs)
+
 class Floor(Tile):
     'default floor'
 
 class DefaultFloor(Floor):
     is_default = True
+
+class DebugFloor(Floor):
+    ch = '1'
+    def ev_replacing(self, old_tile):
+        super().ev_replacing(old_tile)
+        if isinstance(old_tile, DebugFloor):
+            self.ch = '%i' % min(9, int(old_tile.ch) + 1)
+
+class GatewayDebugFloor(DebugFloor):
+    fg = 0x444444
 
 class Grass(Floor):
     ch = ','

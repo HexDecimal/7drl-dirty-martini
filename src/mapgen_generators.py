@@ -35,6 +35,8 @@ class TestGen(mapgen.MapGen):
                 mapgen.Gateway(self, room, neighbor)
                 #break
                 
+        for gateway in self.gateways:
+            gateway.generate()
         #for room in self.rooms:
         #    print(room)
         #    for gateway in room.gateways:

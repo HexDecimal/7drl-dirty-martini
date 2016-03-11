@@ -9,7 +9,8 @@ import tiles
 class Outdoors(mapgen.Room):
     def generate(self):
         for pos in self.get_inner():
-            self.mapgen.map[pos] = tiles.Grass()
-        for pos in self.get_outer():
+            if self.mapgen.map[pos].is_default:
+                self.mapgen.map[pos] = tiles.Grass()
+        for pos in self.get_walls():
             if self.mapgen.map[pos].is_default:
                 self.mapgen.map[pos] = tiles.Grass()
