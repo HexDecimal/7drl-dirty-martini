@@ -6,7 +6,9 @@ from builtins import *
 import mapgen
 import tiles
 
-class Outdoors(mapgen.Room):
+from .base import Room
+
+class Outdoors(Room):
     def generate(self):
         for pos in self.get_inner():
             if self.mapgen.map[pos].is_default:

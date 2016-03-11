@@ -9,7 +9,6 @@ import display
 import tiles
 import map
 import mapgen
-import mapgen_generators
 import things
 import actors
 
@@ -93,7 +92,7 @@ class MainMenu(State):
     def key_down(self, event):
         if event.char.upper() == 'S':
             #new_map = map.Map(128,128,3)
-            new_map = mapgen_generators.TestGen().map
+            new_map = mapgen.generators.TestGen().map
             actors.Actor(map=new_map, x=4, y=4, z=0, player=True)
             MainGameState(new_map).push()
         super().key_down(event)
