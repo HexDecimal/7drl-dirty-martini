@@ -318,8 +318,8 @@ class Room(object):
     def generate(self):
         for pos in self.get_floors():
             self.mapgen.map[pos] = tiles.Floor()
-        for pos in self.get_walls():
-            self.mapgen.map[pos] = tiles.Wall()
+        #for pos in self.get_walls():
+        #    self.mapgen.map[pos] = tiles.Wall()
 
     def __repr__(self):
         return ('<%s(X:%i, Y:%i, Width:%i, Height:%i)>' %
