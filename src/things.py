@@ -22,6 +22,7 @@ class Thing(object):
         if z is None:
             z = self.z
         if not self.can_move_to(x, y, z):
+            self.map[x,y,z].ev_bump(self)
             return
         self.map[self.x,self.y,self.z].objs.remove(self)
         self.map[x,y,z].objs.append(self)

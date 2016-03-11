@@ -22,8 +22,25 @@ class Tile(object):
             ch, fg = self.objs[-1].get_graphic()
         return ch, fg, bg
 
+    def update_map_data(self):
+        '''update walkable and transparency data
+
+        call if walkable or transparent has changed'''
+        self.map.tdl_data[self.z].walkable[self.x, self.y] = self.walkable
+        self.map.tdl_data[self.z].transparent[self.x, self.y] = self.transparent
+
+
     def ev_replacing(self, old_tile):
         self.objs.extend(old_tile.objs)
+
+    def ev_bump(self, actor):
+        pass
+
+    def ev_open(self, actor):
+        pass
+
+    def ev_close(self, actor):
+        pass
 
 class Floor(Tile):
     'default floor'
@@ -76,3 +93,22 @@ class WoodenWall(Structure):
 
 class Wall(WoodenWall):
     'default wall'
+
+class Door(Structure):
+    ch = '+'
+    fg = 0x884400
+
+    def __init__(self):
+        super().__init__()
+        self.opened = False
+
+    def ev_bump(self, actor):
+        self.ev_open(actor)
+
+    def ev_open(self, actor):
+        self.ch = '.'
+        self.opened = True
+        self.walkable = True
+        self.update_map_data()
+
+

@@ -20,6 +20,7 @@ def range_intersection(x1, width1, x2, width2):
                             width1, width2)
 
 class Gateway(object):
+
     def __init__(self, mapgen, room1, room2):
         for gate in room1.gateways:
             if gate in room2.gateways:
@@ -44,6 +45,10 @@ class Gateway(object):
         self.post_adjustment()
 
         logging.debug('new %s', self)
+
+    @property
+    def random(self):
+        return self.mapgen.random
 
     def post_adjustment(self):
         pass

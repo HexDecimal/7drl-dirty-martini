@@ -33,7 +33,7 @@ class TestGen(MapGen):
                 #    continue
                 if neighbor in room.connected:
                     continue
-                gateways.Gateway(self, room, neighbor)
+                gateways.Doorway(self, room, neighbor)
                 #break
 
         for gateway in self.gateways:
