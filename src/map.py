@@ -18,12 +18,6 @@ class Map(object):
         self.tiles = [None] * (width * height * depth)#[tiles.Tile(self) for _ in range(width * height * depth)]
         self.actors = []
         self.scheduler = sched.TickScheduler()
-        self.camera_x = 0
-        self.camera_y = 0
-        self.camera_z = 0
-        self.cursor_x = 0
-        self.cursor_y = 0
-        self.cursor_z = 0
         self.player = None
         for z in range(self.depth):
             tile = tiles.DefaultFloor if z == 0 else tiles.DefaultOpenSpace
@@ -32,13 +26,13 @@ class Map(object):
                     self[x,y,z] = tile()
 
     def camera_center_at(self, x, y, z, view_width, view_height):
-        self.camera_z = z
-        self.camera_x = max(0, min(x - view_width // 2, self.width - view_width))
-        self.camera_y = max(0, min(y - view_height // 2, self.height - view_height))
+        x = max(0, min(x - view_width // 2, self.width - view_width))
+        y = max(0, min(y - view_height // 2, self.height - view_height))
+        return x,y,z
 
-    def camera_center_on_player(self, view_width, view_height):
-        self.camera_center_at(self.player.x, self.player.y, self.player.z,
-                              view_width, view_height)
+    def camera_center_on(self, obj, view_width, view_height):
+        return self.camera_center_at(obj.x, obj.y, obj.z,
+                                     view_width, view_height)
 
     def index(self, x, y, z):
         return x + y * self.width + z * self.width * self.height

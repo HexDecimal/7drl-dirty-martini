@@ -30,3 +30,5 @@ class Thing(object):
     def move_by(self, x, y, z=0):
         return self.move_to(self.x + x, self.y + y, self.z + z)
 
+class Equipment(Thing):
+    ch = ']'

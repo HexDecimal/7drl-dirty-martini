@@ -1,4 +1,4 @@
-
+﻿
 
 from __future__ import absolute_import, division, print_function
 from builtins import *
@@ -40,6 +40,8 @@ class State(object):
         pass
 
 class MapState(State):
+    padding_right = 20 # reserved space on side of console
+
     def __init__(self, map, **kargs):
         self.map = map
         super().__init__(map=map, **kargs)
@@ -51,20 +53,23 @@ class MapState(State):
         #print(self.map.scheduler)
 
     def draw(self, console):
-        console.clear()
-        self.map.camera_center_on_player(*console.get_size())
-        cam_x = self.map.camera_x
-        cam_y = self.map.camera_y
-        cam_z = self.map.camera_z
-        for x,y in console:
-            console.draw_char(x, y,
+        #console.clear()
+        gameview = tdl.Window(console, 0, 0, -self.padding_right, None)
+        sideview = tdl.Window(console, -self.padding_right, 0, None, None)
+        cam_x, cam_y, cam_z = self.map.camera_center_on(self.map.player,
+                                                        *gameview.get_size())
+        for x,y in gameview:
+            gameview.draw_char(x, y,
                               *self.map[x + cam_x, y + cam_y, cam_z]
                                                             .get_graphic())
+        sideview.draw_rect(0, 0, 1, None, u'│'.encode('cp437'))
 
 class MapEditor(MapState):
     pass
 
 class MainGameState(MapState):
+
+    Z_DIRS = {'<': 1, '>': -1}
 
     MOVE_DIRS = {'LEFT': (-1, 0),
               'RIGHT': (1, 0),
@@ -83,8 +88,8 @@ class MainGameState(MapState):
     def key_down(self, event):
         if event.keychar in self.MOVE_DIRS:
             self.map.player.act_move(*self.MOVE_DIRS[event.keychar])
-        if event.keychar in '<>':
-            self.map.player.act_move(0, 0, {'<': 1, '>': -1}[event.keychar])
+        if event.keychar in self.Z_DIRS:
+            self.map.player.act_move(0, 0, self.Z_DIRS[event.keychar])
         self.simulate_until_player_is_ready()
 
 class MainMenu(State):

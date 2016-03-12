@@ -23,7 +23,7 @@ class Actor(things.Thing):
 
     def ev_player_ready(self):
         for x, y in self.map.tdl_data[self.z].compute_fov(self.x, self.y,
-                                                          'PERMISSIVE'):
+                                                 'PERMISSIVE', 50):
             self.map[x, y, self.z].ev_visible(self)
         self.ticket = None # signal to the state that the player is idle
 
