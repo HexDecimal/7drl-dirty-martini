@@ -3,7 +3,7 @@
 from __future__ import absolute_import, division, print_function
 from builtins import *
 
-from .base import MapGen
+from .base import *
 from . import rooms
 from . import gateways
 
@@ -13,7 +13,7 @@ class TestGen(MapGen):
         self.height = 12
         self.depth = 4
         self.room_size = 8
-        self.init(self.width * self.room_size * 2,
+        self.init(self.width * self.room_size,
                   self.height * self.room_size, self.depth)
 
         room = rooms.Outdoors(self, 0, 0, 0, self.room_size * self.width, self.room_size * self.height)
@@ -27,14 +27,59 @@ class TestGen(MapGen):
         for room in self.rooms:
             room.compile_neighbors()
 
-        for room in self.rooms:
-            for neighbor in room.neighbors:
-                #if neighbor.connected:
-                #    continue
-                if neighbor in room.connected:
-                    continue
-                gateways.Doorway(self, room, neighbor)
-                #break
+        # start growing tree
+        stem = [self.random.choice(self.rooms)]
+        while stem:
+            if isinstance(stem[-1], rooms.Outdoors):
+                for neighbor in stem[-1].get_connectable_neighbors():
+                    if not isinstance(neighbor, rooms.Outdoors):
+                        continue
+                    gateways.OpenGateway(self, stem[-1], neighbor)
+                    stem.append(neighbor)
+                    break
+                else:
+                    for neighbor in stem[-1].get_untouched_neighbors():
+                        if isinstance(neighbor, rooms.Outdoors):
+                            continue
+                        gateways.Doorway(self, stem[-1], neighbor)
+                        stem.append(neighbor)
+                        break
+                    else:
+                        if self.random.random() < .1:
+                            for neighbor in stem[-1].get_connectable_neighbors():
+                                if isinstance(neighbor, rooms.Outdoors):
+                                    continue
+                                gateways.Doorway(self, stem[-1], neighbor)
+                        stem.pop()
+            else:
+                for neighbor in stem[-1].get_untouched_neighbors():
+                    if isinstance(neighbor, rooms.Outdoors):
+                        continue
+                    if self.random.random() < .5:
+                        gateways.OpenGateway(self, stem[-1], neighbor)
+                    else:
+                        gateways.Doorway(self, stem[-1], neighbor)
+                    stem.append(neighbor)
+                    break
+                else:
+                    if self.random.random() < .5:
+                        for neighbor in stem[-1].get_connectable_neighbors():
+                            if isinstance(neighbor, rooms.Outdoors):
+                                if neighbor.is_touched():
+                                    continue
+                            gateways.Doorway(self, stem[-1], neighbor)
+                    stem.pop()
+
+
+
+        #for room in self.rooms:
+        #    for neighbor in room.neighbors:
+        #        #if neighbor.connected:
+        #        #    continue
+        #        if neighbor in room.connected:
+        #            continue
+        #        gateways.Doorway(self, room, neighbor)
+        #        #break
 
         for gateway in self.gateways:
             gateway.generate()

@@ -20,6 +20,9 @@ class Tile(object):
     def is_visible(self):
         return self.map.tdl_data[self.z].fov[self.x, self.y]
 
+    def get_cost(self, actor):
+        return 100
+
     def get_graphic(self):
         if not self.is_visible():
             return self.known_as_ch, 0x444444, 0x000000
@@ -115,6 +118,9 @@ class Door(Structure):
         self.ev_open(actor)
 
     def ev_open(self, actor):
+        if self.opened:
+            return
+        actor.time_used = 100
         self.ch = '.'
         self.walkable = self.transparent = self.opened = True
         self.update_map_data()

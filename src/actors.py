@@ -27,6 +27,13 @@ class Actor(things.Thing):
             self.map[x, y, self.z].ev_visible(self)
         self.ticket = None # signal to the state that the player is idle
 
+    def bump(self, x, y, z=0):
+        self.map[self.x + x, self.y + y, self.z + z].ev_bump(self)
+
     def act_move(self, x, y, z=0):
-        self.move_by(x, y, z)
-        self.ticket = self.map.scheduler.schedule(100, self.ev_actor_ready)
+        self.time_used = 0
+        if self.can_move_by(x, y, z):
+            self.time_used += self.move_by(x, y, z)
+        else:
+            self.bump(x, y, z)
+        self.ticket = self.map.scheduler.schedule(self.time_used, self.ev_actor_ready)

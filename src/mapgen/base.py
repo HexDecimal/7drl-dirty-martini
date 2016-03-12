@@ -12,6 +12,9 @@ import tiles
 class RoomGenerationException(Exception):
     pass
 
+class ConnectionAlreadyExists(Exception):
+    pass
+
 class RoomSplitException(RoomGenerationException):
     pass
 
@@ -24,7 +27,7 @@ class Gateway(object):
     def __init__(self, mapgen, room1, room2):
         for gate in room1.gateways:
             if gate in room2.gateways:
-                raise RoomGenerationException(
+                raise ConnectionAlreadyExists(
                     'rooms already share an existing gateway')
         self.mapgen = mapgen
 
@@ -104,6 +107,32 @@ class Room(object):
     @property
     def random(self):
         return self.mapgen.random
+
+    def is_touched(self):
+        return bool(self.connected)
+
+    def can_connect_to(self, other):
+        if self not in other.neighbors:
+            return False
+        for gateway in other.gateways:
+            if self in gateway.rooms:
+                return False
+        return True
+
+    def get_untouched_neighbors(self):
+        'get neighbors with no connections at all'
+        for room in self.neighbors:
+            if not room.is_touched():
+                yield room
+
+    def get_connectable_neighbors(self):
+        'get neighbors that can be connected to'
+        for room in self.neighbors:
+            for gateway in room.gateways:
+                if self in gateway.rooms:
+                    break
+            else:
+                yield room
 
     def is_empty(self):
         return self.width == 0 or self.height == 0

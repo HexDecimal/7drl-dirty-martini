@@ -16,3 +16,8 @@ class Doorway(Gateway):
 
     def generate(self):
         self.mapgen.map[self.x, self.y, self.z] = tiles.Door()
+
+class OpenGateway(Gateway):
+
+    def generate(self):
+        pass
