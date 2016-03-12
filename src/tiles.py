@@ -16,6 +16,10 @@ class Tile(object):
         self.map = None
         self.x = self.y = self.z = None
         self.objs = []
+        
+    def __repr__(self):
+        return '<%s(x: %i, y: %i, z: %i)>' % (self.__class__.__name__,
+                                              self.x, self.y, self.z)
 
     def is_visible(self):
         return self.map.tdl_data[self.z].fov[self.x, self.y]

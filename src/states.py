@@ -63,6 +63,16 @@ class MapState(State):
                               *self.map[x + cam_x, y + cam_y, cam_z]
                                                             .get_graphic())
         sideview.draw_rect(0, 0, 1, None, u'│'.encode('cp437'))
+        y = 0
+        for i, item in enumerate(self.map.player.get_inventory(), 1):
+            sideview.draw_str(1, y, '%i) %s' % (i, item.name))
+            y += 1
+            sideview.draw_str(1, y, item.desc_status())
+            y += 1
+            sideview.draw_rect(1, y, None, 1, '-')
+            y += 1
+            
+            
 
 class MapEditor(MapState):
     pass
@@ -98,7 +108,9 @@ class MainMenu(State):
         if event.char.upper() == 'S':
             #new_map = map.Map(128,128,3)
             new_map = mapgen.generators.TestGen().map
-            actors.Actor(map=new_map, x=4, y=4, z=0, player=True)
+            player = actors.Actor(new_map[4,4,0], player=True)
+            things.Pistol(player)
+            things.Trackers(player, stock=10)
             MainGameState(new_map).push()
         super().key_down(event)
 

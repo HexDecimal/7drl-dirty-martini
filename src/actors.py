@@ -9,12 +9,12 @@ import things
 class Actor(things.Thing):
     ch = '@'
 
-    def __init__(self, map, player=False, **kargs):
-        map.actors.append(self)
-        self.ticket = map.scheduler.schedule(0, self.ev_actor_ready)
+    def __init__(self, loc, player=False, **kargs):
+        super().__init__(loc, player=player, **kargs)
+        self.map.actors.append(self)
+        self.ticket = self.map.scheduler.schedule(0, self.ev_actor_ready)
         if player:
-            map.player = self
-        super().__init__(map=map, player=player, **kargs)
+            self.map.player = self
 
     def ev_actor_ready(self):
         'actor is ready to perform an action'
@@ -37,3 +37,8 @@ class Actor(things.Thing):
         else:
             self.bump(x, y, z)
         self.ticket = self.map.scheduler.schedule(self.time_used, self.ev_actor_ready)
+
+    def get_inventory(self):
+        for obj in self.objs:
+            if isinstance(obj, things.Loot):
+                yield obj
