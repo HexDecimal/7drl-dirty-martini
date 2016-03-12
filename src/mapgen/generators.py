@@ -19,10 +19,10 @@ class TestGen(MapGen):
         room = rooms.Outdoors(self, 0, 0, 0, self.room_size * self.width, self.room_size * self.height)
         room = rooms.Room(self, self.room_size * 2, self.room_size * 2, 0,
                                  self.room_size * 8, self.room_size * 4)
-        room.subdivide_random(6, 4)
+        room.subdivide_random(8, 4)
         room = rooms.Room(self, self.room_size * 6, self.room_size * 6, 0,
                                  self.room_size * 4, self.room_size * 4)
-        room.subdivide_random(4, 4)
+        room.subdivide_random(8, 4)
 
         for room in self.rooms:
             room.compile_neighbors()
@@ -55,14 +55,15 @@ class TestGen(MapGen):
                 for neighbor in stem[-1].get_untouched_neighbors():
                     if isinstance(neighbor, rooms.Outdoors):
                         continue
-                    if self.random.random() < .5:
+                    #if self.random.random() < .5:
+                    if len(stem) % 5 != 0:
                         gateways.OpenGateway(self, stem[-1], neighbor)
                     else:
                         gateways.Doorway(self, stem[-1], neighbor)
                     stem.append(neighbor)
                     break
                 else:
-                    if self.random.random() < .5:
+                    if self.random.random() < .25:
                         for neighbor in stem[-1].get_connectable_neighbors():
                             if isinstance(neighbor, rooms.Outdoors):
                                 if neighbor.is_touched():

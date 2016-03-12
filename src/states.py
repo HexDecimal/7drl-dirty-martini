@@ -48,7 +48,7 @@ class MapState(State):
     def simulate_until_player_is_ready(self):
         while self.map.player.ticket is not None:
             self.map.scheduler.next()
-        print(self.map.scheduler)
+        #print(self.map.scheduler)
 
     def draw(self, console):
         console.clear()
