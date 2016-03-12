@@ -13,7 +13,7 @@ class TestGen(MapGen):
         self.height = 12
         self.depth = 4
         self.room_size = 8
-        self.init(self.width * self.room_size,
+        self.init(self.width * self.room_size * 2,
                   self.height * self.room_size, self.depth)
 
         room = rooms.Outdoors(self, 0, 0, 0, self.room_size * self.width, self.room_size * self.height)

@@ -56,7 +56,5 @@ class Map(object):
         old_tile = self.tiles[index]
         self.tiles[index] = tile
         tile.update_map_data()
-        #self.tdl_data[xyz[2]].walkable[xyz[:2]] = tile.walkable
-        #self.tdl_data[xyz[2]].transparent[xyz[:2]] = tile.transparent
         if old_tile is not None:
             tile.ev_replacing(old_tile)

@@ -9,6 +9,7 @@ class Tile(object):
     bg = 0x000000
     walkable = True
     transparent = True
+    known_as_ch = ' '
     is_default = False
 
     def __init__(self):
@@ -16,7 +17,12 @@ class Tile(object):
         self.x = self.y = self.z = None
         self.objs = []
 
+    def is_visible(self):
+        return self.map.tdl_data[self.z].fov[self.x, self.y]
+
     def get_graphic(self):
+        if not self.is_visible():
+            return self.known_as_ch, 0x444444, 0x000000
         ch, fg, bg = self.ch, self.fg, self.bg
         if self.objs:
             ch, fg = self.objs[-1].get_graphic()
@@ -32,6 +38,9 @@ class Tile(object):
 
     def ev_replacing(self, old_tile):
         self.objs.extend(old_tile.objs)
+
+    def ev_visible(self, actor):
+        self.known_as_ch = self.ch
 
     def ev_bump(self, actor):
         pass
@@ -107,8 +116,7 @@ class Door(Structure):
 
     def ev_open(self, actor):
         self.ch = '.'
-        self.opened = True
-        self.walkable = True
+        self.walkable = self.transparent = self.opened = True
         self.update_map_data()
 
 

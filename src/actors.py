@@ -19,7 +19,13 @@ class Actor(things.Thing):
     def ev_actor_ready(self):
         'actor is ready to perform an action'
         if self.map.player is self:
-            self.ticket = None # signal to the state that the player is idle
+            self.ev_player_ready()
+
+    def ev_player_ready(self):
+        for x, y in self.map.tdl_data[self.z].compute_fov(self.x, self.y,
+                                                          'PERMISSIVE'):
+            self.map[x, y, self.z].ev_visible(self)
+        self.ticket = None # signal to the state that the player is idle
 
     def act_move(self, x, y, z=0):
         self.move_by(x, y, z)
