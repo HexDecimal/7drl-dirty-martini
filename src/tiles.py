@@ -49,6 +49,9 @@ class Tile(object):
 
     def ev_replacing(self, old_tile):
         self.objs.extend(old_tile.objs)
+        for obj in old_tile.objs:
+            if obj.loc is old_tile:
+                obj.loc = self
 
     def ev_visible(self, actor):
         self.known_as_ch = self.ch

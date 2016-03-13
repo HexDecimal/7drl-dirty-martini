@@ -10,7 +10,6 @@ class Thing(object):
     def __init__(self, loc, **kargs):
         self.map = loc.map
         self.location = loc
-        #self.x, self.y, self.z = x, y, z
         loc.objs.append(self)
         self.objs = []
 
@@ -24,6 +23,8 @@ class Thing(object):
     def z(self):
         return self.location.z
 
+    def get_cost(self, actor):
+        return 0
 
     def get_graphic(self, ch, fg, bg):
         return self.ch, self.fg, bg
@@ -34,16 +35,16 @@ class Thing(object):
     def can_move_to(self, x, y, z):
         return self.map[x,y,z].walkable
 
-    def move_to(self, x, y, z=None):
+    def move_to(self, place):
         self.location.objs.remove(self)
-        self.location = self.map[x,y,z]
+        self.location = place
         self.location.objs.append(self)
 
         #self.x, self.y, self.z = x, y, z
         return self.location.get_cost(self)
 
     def move_by(self, x, y, z=0):
-        return self.move_to(self.x + x, self.y + y, self.z + z)
+        return self.move_to(self.map[self.x + x, self.y + y, self.z + z])
 
     def __repr__(self):
         return '<%s(location: %s)>' % (self.__class__.__name__, self.location)
@@ -57,24 +58,24 @@ class Loot(Thing):
         
 class Equipment(Loot):
     ch = ']'
-    stock = 1
+    charges = 1
 
-    def __init__(self, loc, stock=None):
+    def __init__(self, loc, charges=None):
         super().__init__(loc)
-        if stock is not None:
-            self.stock = stock
+        if charges is not None:
+            self.charges = charges
 
 class Pistol(Equipment):
     name = 'pistol'
     desc = ''
-    stock = 15
+    charges = 15
     def desc_status(self):
-        return '%6.i shots' % self.stock
+        return '%6.i shots' % self.charges
 
 class Trackers(Equipment):
     name = 'trackers'
-    stock = 10
+    charges = 10
     
     def desc_status(self):
-        return '%6.i left' % self.stock
+        return '%6.i left' % self.charges
 

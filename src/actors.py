@@ -39,10 +39,32 @@ class Actor(things.Thing):
         self.ticket = self.map.scheduler.schedule(self.time_used, self.ev_actor_ready)
 
     def act_pickup(self):
-        self.map.note('nothing to pickup')
+        self.time_used = 0
+        for obj in list(self.location.objs):
+            if isinstance(obj, things.Loot):
+                obj.move_to(self)
+                self.map.note('you take the %s' % obj.name)
+                break
+        else:
+            self.map.note('nothing here to pickup')
+            return
+        for obj in list(self.location.objs):
+            if isinstance(obj, things.Loot):
+                self.map.note('there\'s still stuff here')
+                break
 
-    def act_drop(self):
-        self.map.note('nothing can be dropped')
+
+    def act_drop(self, item=None):
+        self.time_used = 0
+        if item is None:
+            state = states.ModalAskWhichItem('which item should be dropped?').push(True)
+            item = state.item
+        if item is None:
+            self.map.note('nevermind')
+            return
+        self.time_used += 50
+        item.move_to(self.location)
+        self.map.note('you drop the %s' % item.name)
 
     def act_examine(self):
         self.map.note('not implemented')

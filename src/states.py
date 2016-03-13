@@ -24,11 +24,14 @@ class State(object):
     def push(self, modal=False):
         assert self not in states
         states.append(self)
+        self.enter()
         if(modal):
             self.loop()
+        return self
 
     def pop(self):
         assert self is states[-1]
+        self.exit()
         states.pop()
 
     def loop(self):
@@ -51,6 +54,12 @@ class State(object):
                 dirty = True
                 states[-1].mouse_motion(event)
 
+    def enter(self):
+        pass
+
+    def exit(self):
+        pass
+
     def key_down(self, event):
         print(event)
 
@@ -61,14 +70,26 @@ class State(object):
         pass
 
     def get_index(self):
-        return states.index(state)
+        return states.index(self)
+
+    def next_state(self):
+        index = states.index(self)
+        return None if index == 0 else states[index - 1]
+
+    def __getattr__(self, attr):
+        if self not in states:
+            raise AttributeError()
+        next = self.next_state()
+        if next is None:
+            raise AttributeError()
+        return getattr(next, attr)
 
     def draw(self, console):
         if self.get_index() != 0:
             states[self.get_index() - 1].draw(console)
 
 class MapState(State):
-    padding_right = 20 # reserved space on side of console
+    padding_right = 24 # reserved space on side of console
 
     def __init__(self, map, **kargs):
         self.map = map
@@ -90,6 +111,7 @@ class MapState(State):
             gameview.draw_char(x, y,
                               *self.map[x + cam_x, y + cam_y, cam_z]
                                                             .get_graphic())
+        sideview.clear()
         sideview.draw_rect(0, 0, 1, None, u'│'.encode('cp437'))
         y = 0
         for i, item in enumerate(self.map.player.get_inventory(), 1):
@@ -100,9 +122,8 @@ class MapState(State):
             sideview.draw_rect(1, y, None, 1, '-')
             y += 1
         height = console.height - y
-        for line in self.map.log[-height:]:
-            sideview.draw_str(1, y, line)
-            y += 1
+        for i, line in enumerate(reversed(self.map.log[-height:]), 1):
+            sideview.draw_str(1, -i, line)
 
 
 
@@ -142,8 +163,26 @@ class MainGameState(MapState):
 
         self.simulate_until_player_is_ready()
 
-class ModalWindow(State):
+class ModalState(State):
     pass
+
+class ModalAskWhichItem(ModalState):
+    def __init__(self, msg):
+        self.msg = msg
+        self.item = None
+
+    def enter(self):
+        self.map.note(self.msg)
+
+    def key_down(self, event):
+        key = event.keychar.upper()
+        if key.isdigit():
+            i = int(key)
+            try:
+                self.item = self.map.player.objs[i-1]
+            except IndexError:
+                pass
+        self.pop()
 
 class ModalUseWhere(MapState):
     pass
@@ -160,7 +199,7 @@ class MainMenu(State):
             new_map = mapgen.generators.TestGen(seed).map
             player = actors.Actor(new_map[4,4,0], player=True)
             things.Pistol(player)
-            things.Trackers(player, stock=10)
+            things.Trackers(player)
             MainGameState(new_map).push()
         super().key_down(event)
 
