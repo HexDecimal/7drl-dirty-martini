@@ -39,7 +39,7 @@ class Map(object):
                                      view_width, view_height)
 
     def note(self, msg):
-        self.log += textwrap.wrap(msg, MapState.padding_right - 1)
+        self.log += textwrap.wrap(msg, states.MapState.padding_right - 1)
 
     def index(self, x, y, z):
         return x + y * self.width + z * self.width * self.height
