@@ -10,6 +10,7 @@ class GameObject(object):
     is_actor = False
     is_furniture = False
     is_tile = False
+    can_pickup = False
 
     def is_player(self):
         return self.map.player is self
@@ -33,6 +34,9 @@ class GameObject(object):
         pass
 
     def ev_removing(self):
+        pass
+        
+    def ev_pickup(self, actor):
         pass
 
 
@@ -93,6 +97,7 @@ class Highlight(Thing):
 class Loot(Thing):
     name = '[no name]'
     desc = '[I need a description]'
+    can_pickup = True
 
     def __init__(self, loc):
         self.key = None
@@ -103,6 +108,10 @@ class Loot(Thing):
             self.key = None
             self.key = self.location.get_next_item_key()
 
+    def ev_pickup(self, actor):
+        self.move_to(actor)
+        self.map.note('you take the %s' % self.name)
+            
     def use_item(self, actor):
         self.map.note('no action for your %s' % self.name)
         return 0
@@ -160,5 +169,15 @@ class TrackersActive(Trackers):
         self.map.trackers_dirty = True
         self.map.trackers.remove(self)
 
+    def ev_pickup(self, actor):
+        self.remove()
+        for obj in actor.objs:
+            if isinstance(obj, Trackers):
+                obj.charges += 1
+                break
+        else:
+            Trackers(actor, charges=1)
+        self.map.note('you take the %s' % self.name)
+        
     def get_graphic(self, ch, fg, bg):
         return ch, 0xffffff, bg

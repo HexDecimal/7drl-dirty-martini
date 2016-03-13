@@ -61,9 +61,8 @@ class Actor(things.Thing):
     def act_pickup(self):
         self.time_used = 0
         for obj in list(self.location.objs):
-            if isinstance(obj, things.Loot):
-                obj.move_to(self)
-                self.map.note('you take the %s' % obj.name)
+            if obj.can_pickup:
+                obj.ev_pickup(self)
                 break
         else:
             self.map.note('nothing here to pickup')
