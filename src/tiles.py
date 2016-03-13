@@ -13,10 +13,12 @@ class Tile(GameObject):
     transparent = True
     known_as_ch = ' '
     is_default = False
+    is_tile = True
 
     def __init__(self):
         self.map = None
         self.x = self.y = self.z = None
+        self.tracked = False
         self.objs = []
         
     def __repr__(self):
@@ -24,11 +26,11 @@ class Tile(GameObject):
                                               self.x, self.y, self.z)
 
     def is_visible(self):
-        return self.map.tdl_data[self.z].fov[self.x, self.y]
+        return self.tracked or self.map.tdl_data[self.z].fov[self.x, self.y]
 
     def is_known(self):
         return self.is_visible() or self.known_as_ch != ' '
-
+        
     def get_cost(self, actor):
         return 100
 
@@ -47,6 +49,7 @@ class Tile(GameObject):
         call if walkable or transparent has changed'''
         self.map.tdl_data[self.z].walkable[self.x, self.y] = self.walkable
         self.map.tdl_data[self.z].transparent[self.x, self.y] = self.transparent
+        self.map.trackers_dirty = True # will need to update trackers
 
 
     def ev_replacing(self, old_tile):
@@ -57,15 +60,6 @@ class Tile(GameObject):
 
     def ev_visible(self, actor):
         self.known_as_ch = self.ch
-
-    def ev_bump(self, actor):
-        pass
-
-    def ev_open(self, actor):
-        pass
-
-    def ev_close(self, actor):
-        pass
 
 class Floor(Tile):
     'default floor'
@@ -156,10 +150,28 @@ class Door(Structure):
 
     def ev_open(self, actor):
         if self.opened:
+            self.map.note('that\'s already open')
             return
         actor.time_used = 100
         self.ch = '.'
         self.walkable = self.transparent = self.opened = True
         self.update_map_data()
+        
+    def ev_close(self, actor):
+        if not self.opened:
+            self.map.note('that\'s already closed')
+            return
+        actor.time_used = 100
+        self.ch = '+'
+        self.walkable = self.transparent = self.opened = False
+        self.update_map_data()
+        
 
+class Furniture(Tile):
+    ch = '#'
+    fg = 0x880000
+    is_furniture = True
 
+class PottedPlant(Furniture):
+    ch = '*'
+    fg = 0x008800

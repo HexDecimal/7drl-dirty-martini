@@ -356,8 +356,13 @@ class Room(object):
         return rooms
 
     def generate(self):
-        for pos in self.get_floors():
+        floors = list(self.get_floors())
+        for pos in floors:
             self.mapgen.map[pos] = tiles.Floor()
+        prop_count = self.random.randint(0, int(len(floors) ** .1 + 1))
+        for pos in self.random.sample(floors, prop_count):
+            self.mapgen.map[pos] = self.random.choice([tiles.PottedPlant,
+                                                       tiles.Furniture])()
         for pos in self.get_walls():
             self.mapgen.map[pos] = tiles.Wall()
 

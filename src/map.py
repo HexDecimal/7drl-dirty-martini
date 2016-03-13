@@ -19,6 +19,8 @@ class Map(object):
         self.depth = depth
         self.tdl_data = [tdl.map.Map(width, height) for _ in range(depth)]
         self.tiles = [None] * (width * height * depth)#[tiles.Tile(self) for _ in range(width * height * depth)]
+        self.trackers_dirty = False
+        self.trackers = []
         self.actors = []
         self.log = []
         self.scheduler = sched.TickScheduler()
@@ -51,6 +53,8 @@ class Map(object):
         return tiles.Border()
 
     def __setitem__(self, xyz, tile):
+        assert isinstance(tile, tiles.Tile), ('must be a tile instance not %s'
+                                              % tile)
         tile.x, tile.y, tile.z = xyz
         tile.map = self
         index = self.index(*xyz)
@@ -59,3 +63,32 @@ class Map(object):
         tile.update_map_data()
         if old_tile is not None:
             tile.ev_replacing(old_tile)
+
+    def refresh(self):
+        if self.trackers_dirty:
+            self.trackers_dirty = False
+            if self.trackers:
+                cumulative = [False for _ in self.tdl_data]
+                for tracker in self.trackers:
+                    self.tdl_data[tracker.z].compute_fov(tracker.x, tracker.y,
+                        'PERMISSIVE', radius=20, sphere=False,
+                        cumulative=cumulative[tracker.z])
+                    cumulative[tracker.z] = True
+                for z, tdl_data in enumerate(self.tdl_data):
+                    for x, y in tdl_data:
+                        self[x, y, z].tracked = tdl_data.fov[x, y]
+            else:
+                for tile in self.tiles:
+                    tile.tracked = False
+        for x, y in self.tdl_data[self.player.z].compute_fov(
+                        self.player.x, self.player.y, 'PERMISSIVE', 50):
+            self[x, y, self.player.z].ev_visible(self.player)
+        
+        
+        
+        
+        
+        
+        
+        
+            

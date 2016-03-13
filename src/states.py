@@ -18,6 +18,39 @@ states = []
 
 class State(object):
 
+    ACTIONS = {'G': 'pickup',
+               'D': 'drop',
+               'X': 'examine',
+               'A': 'apply',
+               'C': 'close',
+               'O': 'open',}
+
+    Z_DIRS = {'<': 1, '>': -1}
+
+    DIRS = ((-1, 0),
+            (-1, -1),
+            (0, -1),
+            (1, -1),
+            (1, 0),
+            (1, 1),
+            (0, 1),
+            (-1, 1),
+            )
+    
+    MOVE_DIRS = {'LEFT': (-1, 0),
+              'RIGHT': (1, 0),
+              'UP': (0, -1),
+              'DOWN': (0, 1),
+              'KP1': (-1, 1),
+              'KP2': (0, 1),
+              'KP3': (1, 1),
+              'KP4': (-1, 0),
+              'KP5': (0, 0),
+              'KP6': (1, 0),
+              'KP7': (-1, -1),
+              'KP8': (0, -1),
+              'KP9': (1, -1),}
+
     def __init__(self, **kargs):
         pass
 
@@ -78,10 +111,10 @@ class State(object):
 
     def __getattr__(self, attr):
         if self not in states:
-            raise AttributeError()
+            raise AttributeError(attr)
         next = self.next_state()
         if next is None:
-            raise AttributeError()
+            raise AttributeError(attr)
         return getattr(next, attr)
 
     def draw(self, console):
@@ -103,6 +136,7 @@ class MapState(State):
 
     def draw(self, console):
         #console.clear()
+        self.map.refresh()
         gameview = tdl.Window(console, 0, 0, -self.padding_right, None)
         sideview = tdl.Window(console, -self.padding_right, 0, None, None)
         cam_x, cam_y, cam_z = self.map.camera_center_on(self.map.player,
@@ -114,8 +148,8 @@ class MapState(State):
         sideview.clear()
         sideview.draw_rect(0, 0, 1, None, u'│'.encode('cp437'))
         y = 0
-        for i, item in enumerate(self.map.player.get_inventory(), 1):
-            sideview.draw_str(1, y, '%i) %s' % (i, item.name))
+        for item in sorted(self.map.player.get_inventory(), key=lambda o:o.key):
+            sideview.draw_str(1, y, '%s) %s' % (item.key, item.name))
             y += 1
             sideview.draw_str(1, y, item.desc_status())
             y += 1
@@ -132,35 +166,16 @@ class MapEditor(MapState):
 
 class MainGameState(MapState):
 
-    ACTIONS = {'G': 'pickup',
-               'D': 'drop',
-               'X': 'examine'}
-
-    Z_DIRS = {'<': 1, '>': -1}
-
-    MOVE_DIRS = {'LEFT': (-1, 0),
-              'RIGHT': (1, 0),
-              'UP': (0, -1),
-              'DOWN': (0, 1),
-              'KP1': (-1, 1),
-              'KP2': (0, 1),
-              'KP3': (1, 1),
-              'KP4': (-1, 0),
-              'KP5': (0, 0),
-              'KP6': (1, 0),
-              'KP7': (-1, -1),
-              'KP8': (0, -1),
-              'KP9': (1, -1),}
-
     def key_down(self, event):
         key = event.keychar.upper()
         if key in self.MOVE_DIRS:
             self.map.player.act_move(*self.MOVE_DIRS[event.keychar])
-        if key in self.Z_DIRS:
+        elif key in self.Z_DIRS:
             self.map.player.act_move(0, 0, self.Z_DIRS[event.keychar])
-        if key in self.ACTIONS:
+        elif key in self.ACTIONS:
             getattr(self.map.player, 'act_%s' % self.ACTIONS[key])()
-
+        elif self.map.player.get_item_by_assignment(key):
+            self.map.player.act_apply(self.map.player.get_item_by_assignment(key))
         self.simulate_until_player_is_ready()
 
 class ModalState(State):
@@ -176,16 +191,29 @@ class ModalAskWhichItem(ModalState):
 
     def key_down(self, event):
         key = event.keychar.upper()
-        if key.isdigit():
-            i = int(key)
-            try:
-                self.item = self.map.player.objs[i-1]
-            except IndexError:
-                pass
+        self.item = self.map.player.get_item_by_assignment(key)
         self.pop()
 
-class ModalUseWhere(MapState):
-    pass
+class ModalUseWhere(ModalState):
+    def __init__(self, msg):
+        self.msg = msg
+        self.temp_objs = []
+        self.dir = None
+        
+    def enter(self):
+        self.temp_objs = [things.Highlight(self.map.player.get_relative_tile(x, y))
+                          for x, y in self.DIRS]
+        self.map.note(self.msg)
+        
+    def exit(self):
+        for obj in self.temp_objs:
+            obj.remove()
+
+    def key_down(self, event):
+        key = event.keychar.upper()
+        if key in self.MOVE_DIRS:
+            self.dir = self.MOVE_DIRS[key]
+        self.pop()
 
 class MainMenu(State):
 
