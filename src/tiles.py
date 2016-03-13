@@ -3,7 +3,9 @@
 from __future__ import absolute_import, division, print_function
 from builtins import *
 
-class Tile(object):
+from things import GameObject
+
+class Tile(GameObject):
     ch = '.'
     fg = 0x888888
     bg = 0x000000

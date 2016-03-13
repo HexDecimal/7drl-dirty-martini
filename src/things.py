@@ -3,7 +3,21 @@
 from __future__ import absolute_import, division, print_function
 from builtins import *
 
-class Thing(object):
+import actors
+
+class GameObject(object):
+    
+    def get_cost(self, actor):
+        return 0
+    
+    def ev_added(self):
+        pass
+        
+    def ev_removing(self):
+        pass
+
+
+class Thing(GameObject):
     ch = '?'
     fg = 0xffffff
 
@@ -23,9 +37,6 @@ class Thing(object):
     def z(self):
         return self.location.z
 
-    def get_cost(self, actor):
-        return 0
-
     def get_graphic(self, ch, fg, bg):
         return self.ch, self.fg, bg
 
@@ -36,11 +47,12 @@ class Thing(object):
         return self.map[x,y,z].walkable
 
     def move_to(self, place):
-        self.location.objs.remove(self)
+        if self.location is not None:
+            self.ev_removing()
+            self.location.objs.remove(self)
         self.location = place
         self.location.objs.append(self)
-
-        #self.x, self.y, self.z = x, y, z
+        self.ev_added()
         return self.location.get_cost(self)
 
     def move_by(self, x, y, z=0):
@@ -52,6 +64,13 @@ class Thing(object):
 class Loot(Thing):
     name = '[no name]'
     desc = '[I need a description]'
+    
+    def __init__(self, loc):
+        super().__init__(loc)
+        self.key = None
+        
+    def ev_added(self):
+        if isinstance(self.location, actors.Actor)
     
     def desc_status(self):
         return ''

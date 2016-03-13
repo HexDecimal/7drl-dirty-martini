@@ -26,10 +26,16 @@ class Actor(things.Thing):
                                                  'PERMISSIVE', 50):
             self.map[x, y, self.z].ev_visible(self)
         self.ticket = None # signal to the state that the player is idle
-
+        
     def bump(self, x, y, z=0):
         self.map[self.x + x, self.y + y, self.z + z].ev_bump(self)
 
+    def get_item_by_assignment(self, key):
+        pass
+        
+    def get_next_item_key(self):
+        pass
+        
     def act_move(self, x, y, z=0):
         self.time_used = 0
         if self.can_move_by(x, y, z):
