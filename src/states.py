@@ -3,6 +3,8 @@
 from __future__ import absolute_import, division, print_function
 from builtins import *
 
+import random
+
 import tdl
 
 import display
@@ -19,13 +21,35 @@ class State(object):
     def __init__(self, **kargs):
         pass
 
-    def push(self):
+    def push(self, modal=False):
         assert self not in states
         states.append(self)
+        if(modal):
+            self.loop()
 
     def pop(self):
         assert self is states[-1]
         states.pop()
+
+    def loop(self):
+        dirty = True
+        while self in states:
+            if dirty:
+                states[-1].draw(display.console)
+                tdl.flush()
+                dirty = False
+            event = tdl.event.wait(flush=False)
+            if event.type == 'QUIT':
+                return
+            elif event.type == 'KEYDOWN':
+                dirty = True
+                states[-1].key_down(event)
+            elif event.type == 'MOUSEDOWN':
+                dirty = True
+                states[-1].mouse_down(event)
+            elif event.type == 'MOUSEMOTION':
+                dirty = True
+                states[-1].mouse_motion(event)
 
     def key_down(self, event):
         print(event)
@@ -36,8 +60,12 @@ class State(object):
     def mouse_motion(self, event):
         pass
 
+    def get_index(self):
+        return states.index(state)
+
     def draw(self, console):
-        pass
+        if self.get_index() != 0:
+            states[self.get_index() - 1].draw(console)
 
 class MapState(State):
     padding_right = 20 # reserved space on side of console
@@ -71,8 +99,8 @@ class MapState(State):
             y += 1
             sideview.draw_rect(1, y, None, 1, '-')
             y += 1
-            
-            
+
+
 
 class MapEditor(MapState):
     pass
@@ -105,9 +133,13 @@ class MainGameState(MapState):
 class MainMenu(State):
 
     def key_down(self, event):
-        if event.char.upper() == 'S':
+        if event.char.upper() == 'S' or event.char.upper() == 'R':
             #new_map = map.Map(128,128,3)
-            new_map = mapgen.generators.TestGen().map
+            seed = 42
+            if event.char.upper() == 'R':
+                seed = random.randint(0, 1<<32-1)
+                print('SEED %i' % seed)
+            new_map = mapgen.generators.TestGen(seed).map
             player = actors.Actor(new_map[4,4,0], player=True)
             things.Pistol(player)
             things.Trackers(player, stock=10)
@@ -117,28 +149,8 @@ class MainMenu(State):
     def draw(self, console):
         console.clear()
         console.draw_str(2,2,'[S]tart')
+        console.draw_str(3,3,'[R]andom')
 
 def start():
     display.init()
-    MainMenu().push()
-    dirty = True
-    while True:
-        if not states:
-            return
-
-        if dirty:
-            states[-1].draw(display.console)
-            tdl.flush()
-            dirty = False
-        event = tdl.event.wait(flush=False)
-        if event.type == 'QUIT':
-            return
-        elif event.type == 'KEYDOWN':
-            dirty = True
-            states[-1].key_down(event)
-        elif event.type == 'MOUSEDOWN':
-            dirty = True
-            states[-1].mouse_down(event)
-        elif event.type == 'MOUSEMOTION':
-            dirty = True
-            states[-1].mouse_motion(event)
+    MainMenu().push(modal=True)

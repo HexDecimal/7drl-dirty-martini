@@ -368,7 +368,8 @@ class Room(object):
 
 class MapGen(object):
 
-    def __init__(self):
+    def __init__(self, seed=None):
+        self.seed = seed
         self.generate()
         #print(self.rooms)
         for room in self.rooms:
@@ -388,7 +389,7 @@ class MapGen(object):
                    self.room_size * 2, self.room_size * 2)
 
     def init(self, width, height, depth):
-        self.random = _random.Random(42)
+        self.random = _random.Random(self.seed)
         self.rooms = []
         self.gateways = []
         self.map = map.Map(width + 1, height + 1, depth)
