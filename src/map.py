@@ -3,6 +3,8 @@
 from __future__ import absolute_import, division, print_function
 from builtins import *
 
+import textwrap
+
 import tdl
 
 import tiles
@@ -17,6 +19,7 @@ class Map(object):
         self.tdl_data = [tdl.map.Map(width, height) for _ in range(depth)]
         self.tiles = [None] * (width * height * depth)#[tiles.Tile(self) for _ in range(width * height * depth)]
         self.actors = []
+        self.log = []
         self.scheduler = sched.TickScheduler()
         self.player = None
         for z in range(self.depth):
@@ -33,6 +36,9 @@ class Map(object):
     def camera_center_on(self, obj, view_width, view_height):
         return self.camera_center_at(obj.x, obj.y, obj.z,
                                      view_width, view_height)
+
+    def note(self, msg):
+        self.log += textwrap.wrap(msg, 19)
 
     def index(self, x, y, z):
         return x + y * self.width + z * self.width * self.height

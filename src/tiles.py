@@ -35,7 +35,8 @@ class Tile(object):
             return self.known_as_ch, 0x444444, 0x000000
         ch, fg, bg = self.ch, self.fg, self.bg
         if self.objs:
-            ch, fg = self.objs[-1].get_graphic()
+            for obj in self.objs:
+                ch, fg, bg = obj.get_graphic(ch, fg, bg)
         return ch, fg, bg
 
     def update_map_data(self):

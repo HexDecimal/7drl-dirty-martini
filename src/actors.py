@@ -38,6 +38,15 @@ class Actor(things.Thing):
             self.bump(x, y, z)
         self.ticket = self.map.scheduler.schedule(self.time_used, self.ev_actor_ready)
 
+    def act_pickup(self):
+        self.map.note('nothing to pickup')
+
+    def act_drop(self):
+        self.map.note('nothing can be dropped')
+
+    def act_examine(self):
+        self.map.note('not implemented')
+
     def get_inventory(self):
         for obj in self.objs:
             if isinstance(obj, things.Loot):

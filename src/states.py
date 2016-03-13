@@ -99,6 +99,10 @@ class MapState(State):
             y += 1
             sideview.draw_rect(1, y, None, 1, '-')
             y += 1
+        height = console.height - y
+        for line in self.map.log[-height:]:
+            sideview.draw_str(1, y, line)
+            y += 1
 
 
 
@@ -106,6 +110,10 @@ class MapEditor(MapState):
     pass
 
 class MainGameState(MapState):
+
+    ACTIONS = {'G': 'pickup',
+               'D': 'drop',
+               'X': 'examine'}
 
     Z_DIRS = {'<': 1, '>': -1}
 
@@ -124,11 +132,21 @@ class MainGameState(MapState):
               'KP9': (1, -1),}
 
     def key_down(self, event):
-        if event.keychar in self.MOVE_DIRS:
+        key = event.keychar.upper()
+        if key in self.MOVE_DIRS:
             self.map.player.act_move(*self.MOVE_DIRS[event.keychar])
-        if event.keychar in self.Z_DIRS:
+        if key in self.Z_DIRS:
             self.map.player.act_move(0, 0, self.Z_DIRS[event.keychar])
+        if key in self.ACTIONS:
+            getattr(self.map.player, 'act_%s' % self.ACTIONS[key])()
+
         self.simulate_until_player_is_ready()
+
+class ModalWindow(State):
+    pass
+
+class ModalUseWhere(MapState):
+    pass
 
 class MainMenu(State):
 

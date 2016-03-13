@@ -25,8 +25,8 @@ class Thing(object):
         return self.location.z
 
 
-    def get_graphic(self):
-        return self.ch, self.fg
+    def get_graphic(self, ch, fg, bg):
+        return self.ch, self.fg, bg
 
     def can_move_by(self, x, y, z):
         return self.can_move_to(self.x + x,self.y + y,self.z + z)
